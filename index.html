@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Números da Roleta</title>
+    <style>
+        body {
+            text-align: center;
+            background-color: #660000; /* Cor de fundo do corpo */
+            color: #ffffff; /* Cor do texto */
+        }
+        h1, h2 {
+            color: #ffffff; /* Cor do texto dos títulos */
+        }
+        form, table {
+            margin: 0 auto; /* Centralizar o formulário e a tabela */
+            width: 50%; /* Largura de 50% para o formulário e a tabela */
+            background-color: #000000; /* Cor de fundo do formulário e da tabela */
+            padding: 20px; /* Espaçamento interno */
+            border-radius: 10px; /* Borda arredondada */
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Sombra */
+        }
+        table {
+            border-collapse: collapse; /* Colapso das bordas da tabela */
+            width: 100%; /* Largura total da tabela */
+        }
+        th, td {
+            padding: 8px; /* Espaçamento interno das células da tabela */
+            border-bottom: 3px solid #660000; /* Borda inferior das células */
+        }
+        tr:nth-child(even) {
+            background-color: #505050; /* Cor de fundo das linhas pares da tabela */
+        }
+        tr:hover {
+            background-color: #660000; /* Cor de fundo quando o mouse passa por cima */
+        }
+        .destaque {
+            font-weight: bold; /* Texto em negrito */
+            font-size: 18px; /* Tamanho da fonte aumentado */
+            color: #fbff00; /* Cor do texto destacado (verde) */
+        }
+    </style>
+</head>
+<body>
+    <h1>ROLETA</h1>
+    <form id="formularioRoleta">
+        <label for="numero">Insira um número da roleta (0-36):</label><br>
+        <input type="number" id="numero" name="numero" min="0" max="36"><br>
+        <input type="submit" value="Enviar">
+    </form>
+
+    <h2>Resultado da Última Jogada</h2>
+    <div id="ultimoResultado">
+        <!-- O resultado será exibido aqui -->
+    </div>
+
+    <h2>Histórico de Números Jogados</h2>
+    <button id="limparHistorico">Limpar Histórico</button>
+    <table border="1" id="tabelaHistorico">
+        <!-- O conteúdo da tabela de histórico será preenchido aqui -->
+    </table>
+
+    <script>
+        class Roleta {
+            constructor() {
+                this.historico = [];
+                this.TIER = [1,5,6,8,9,10,11,13,14,16,20,23,24,27,30,31,33,34,36];
+                this.ZERO = [0,2,3,4,7,12,15,17,18,19,21,22,25,26,28,29,32,35];
+                this.PRETO = [2,4,6,8,10,11,13,15,17,20,22,24,26,28,29,31,33,35];
+                this.VERMELHO = [1,3,5,7,9,12,14,16,18,19,21,23,25,27,30,32,34,36];
+                this.VERDE = [0];
+            }
+
+            verificarCategoria(numero) {
+                if (this.TIER.includes(numero)) {
+                    return "TIER";
+                } else if (this.ZERO.includes(numero)) {
+                    return "VIZINHOS DO ZERO";
+                } else {
+                    return "N/A";
+                }
+            }
+
+            verificarCor(numero) {
+                if (this.PRETO.includes(numero)) {
+                    return "PRETO";
+                } else if (this.VERMELHO.includes(numero)) {
+                    return "VERMELHO";
+                } else if (this.VERDE.includes(numero)) {
+                    return "VERDE";
+                } else {
+                    return "N/A";
+                }
+            }
+
+            processarFormulario(numero) {
+                var categoria = this.verificarCategoria(numero);
+                var cor = this.verificarCor(numero);
+                this.historico.push([numero, categoria, cor]);
+            }
+
+            renderizarUltimoResultado(numero, categoria, cor) {
+                var ultimoResultado = document.getElementById('ultimoResultado');
+                ultimoResultado.innerHTML = `
+                    <p><span class="destaque">O número jogado foi:</span> <span style="color: #00FF00">${numero}</span></p>
+                    <p><span class="destaque">Categoria:</span> <span style="color: #00FF00">${categoria}</span></p>
+                    <p><span class="destaque">Cor:</span> <span style="color: #00FF00">${cor}</span></p>
+                `;
+            }
+
+            renderizarHistorico() {
+    var tabelaHistorico = document.getElementById('tabelaHistorico');
+    tabelaHistorico.innerHTML = `
+        <tr>
+            <th>Número</th>
+            <th>Categoria</th>
+            <th>Cor</th>
+        </tr>
+        ${this.historico.map(function (item) {
+            return `
+                <tr>
+                    <td>${item[0]}</td>
+                    <td>${item[1]}</td>
+                    <td>${item[2]}</td>
+                </tr>
+            `;
+        }).reverse().join('')}
+    `;
+}
+
+            limparHistorico() {
+                this.historico = [];
+                this.renderizarHistorico();
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            var roleta = new Roleta();
+
+            var formularioRoleta = document.getElementById('formularioRoleta');
+            formularioRoleta.addEventListener('submit', function (evento) {
+                evento.preventDefault(); // Evita o envio do formulário
+
+                var numeroInput = document.getElementById('numero');
+                var numero = parseInt(numeroInput.value);
+
+                if (!isNaN(numero) && numero >= 0 && numero <= 36) {
+                    var categoria = roleta.verificarCategoria(numero);
+                    var cor = roleta.verificarCor(numero);
+
+                    roleta.processarFormulario(numero);
+                    roleta.renderizarUltimoResultado(numero, categoria, cor);
+                    roleta.renderizarHistorico();
+
+                    numeroInput.value = '';
+                } else {
+                    alert("O valor inserido não é um número válido.");
+                }
+            });
+
+            var limparHistoricoBotao = document.getElementById('limparHistorico');
+            limparHistoricoBotao.addEventListener('click', function () {
+                roleta.limparHistorico();
+            });
+        });
+    </script>
+</body>
+</html>
